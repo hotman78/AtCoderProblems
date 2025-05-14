@@ -24,6 +24,7 @@ import {
 } from "../../utils/ProblemSelection";
 import { useLoginState } from "../../api/InternalAPIClient";
 import { useMergedProblemMap } from "../../api/APIClient";
+import { ContestCategories } from "../../utils/ContestClassifier";
 import { INF_POINT, ListTable, StatusFilter, statusFilters } from "./ListTable";
 
 export const FilterParams = {
@@ -31,6 +32,7 @@ export const FilterParams = {
   ToPoint: "toPo",
   Status: "status",
   Rated: "rated",
+  Category: "category",
   FromDifficulty: "fromDiff",
   ToDifficulty: "toDiff",
   Language: "Lang",
@@ -55,6 +57,8 @@ const RATED_FILTERS = [
 ] as const;
 type RatedFilter = typeof RATED_FILTERS[number];
 
+const categoryFilters = ["All", ...ContestCategories] as const;
+type CategoryFilter = typeof categoryFilters[number];
 interface Props {
   userId: string;
   submissions: Submission[];
@@ -91,6 +95,10 @@ export const ProblemList: React.FC<Props> = (props) => {
   const ratedFilterState: RatedFilter =
     RATED_FILTERS.find((x) => x === searchParams.get(FilterParams.Rated)) ??
     "All";
+  const contestCategoryFilterState: CategoryFilter =
+    categoryFilters.find(
+      (x) => x === searchParams.get(FilterParams.Category)
+    ) ?? "All";
 
   const languages = ["All"].concat(
     Array.from(
@@ -202,6 +210,28 @@ export const ProblemList: React.FC<Props> = (props) => {
                   tag={Link}
                   to={generatePathWithParams(location, {
                     [FilterParams.Rated]: value,
+                  })}
+                >
+                  {value}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </UncontrolledDropdown>
+        </ButtonGroup>
+        <ButtonGroup className="mr-4">
+          <UncontrolledDropdown>
+            <DropdownToggle caret>
+              {contestCategoryFilterState === "All"
+                ? "Category"
+                : contestCategoryFilterState}
+            </DropdownToggle>
+            <DropdownMenu>
+              {categoryFilters.map((value) => (
+                <DropdownItem
+                  key={value}
+                  tag={Link}
+                  to={generatePathWithParams(location, {
+                    [FilterParams.Category]: value,
                   })}
                 >
                   {value}
@@ -325,6 +355,7 @@ export const ProblemList: React.FC<Props> = (props) => {
           toPoint={toPoint}
           statusFilterState={statusFilterState}
           ratedFilterState={ratedFilterState}
+          contestCategoryFilterState={contestCategoryFilterState}
           fromDifficulty={fromDifficulty}
           toDifficulty={toDifficulty}
           filteredSubmissions={props.submissions}
