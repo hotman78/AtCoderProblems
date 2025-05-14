@@ -16,6 +16,7 @@ const LocalStorageKeys = [
   "showRating",
   "recommendOption",
   "recommendExperimental",
+  "recommendMergeLikeContest",
   "recoomendExcludeOption",
   "recommendCategoryOption",
   "MergeLikeContest",

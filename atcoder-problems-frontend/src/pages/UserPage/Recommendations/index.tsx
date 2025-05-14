@@ -35,6 +35,7 @@ import {
   getMaximumExcludeElapsedSecond,
 } from "../../../utils/LastSolvedTime";
 import { classifyContest } from "../../../utils/ContestClassifier";
+import { getLikeContestCategory } from "../../../utils/LikeContestUtils";
 import { recommendProblems } from "./RecommendProblems";
 import {
   CategoryOption,
@@ -59,6 +60,12 @@ export const Recommendations = (props: Props) => {
     "recoomendExcludeOption",
     "Exclude"
   );
+
+  const [mergeLikeContest, setMergeLikeContest] = useLocalStorage<boolean>(
+    "recommendMergeLikeContest",
+    true
+  );
+
   const [categoryOption, setCategoryOption] = useLocalStorage<CategoryOption>(
     "recommendCategoryOption",
     "All"
@@ -122,7 +129,8 @@ export const Recommendations = (props: Props) => {
       }
       return (
         classifyContest(contest) === categoryOption ||
-        classifyContest(contest) === categoryOption + "-Like"
+        (mergeLikeContest &&
+          classifyContest(contest) === getLikeContestCategory(categoryOption))
       );
     },
     (problemId: ProblemId) => problemModels?.get(problemId),
@@ -146,6 +154,8 @@ export const Recommendations = (props: Props) => {
           onChangeExperimentalVisibility={(show) =>
             setRecommendExperimental(show)
           }
+          mergeLikeContest={mergeLikeContest}
+          onChangeMergeLikeContest={(merge) => setMergeLikeContest(merge)}
           showCount={recommendNum}
           onChangeShowCount={(value) => setRecommendNum(value)}
         />
