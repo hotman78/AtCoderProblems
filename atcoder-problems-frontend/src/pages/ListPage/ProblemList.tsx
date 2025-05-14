@@ -1,5 +1,5 @@
 import { Range } from "immutable";
-import React from "react";
+import { React, useMemo, useState } from "react";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import {
   Button,
@@ -25,6 +25,7 @@ import {
 import { useLoginState } from "../../api/InternalAPIClient";
 import { useMergedProblemMap } from "../../api/APIClient";
 import { ContestCategories } from "../../utils/ContestClassifier";
+import { isLikeContestCategory } from "../../utils/LikeContestUtils";
 import { INF_POINT, ListTable, StatusFilter, statusFilters } from "./ListTable";
 
 export const FilterParams = {
@@ -35,6 +36,7 @@ export const FilterParams = {
   Category: "category",
   FromDifficulty: "fromDiff",
   ToDifficulty: "toDiff",
+  mergeLikeContest: "mergeLikeContest",
   Language: "Lang",
 } as const;
 
@@ -64,7 +66,7 @@ interface Props {
   submissions: Submission[];
 }
 
-export const ProblemList: React.FC<Props> = (props) => {
+export const ProblemList: React.FC<Props> = (props: Props) => {
   const location = useLocation();
   const history = useHistory();
 
@@ -120,6 +122,7 @@ export const ProblemList: React.FC<Props> = (props) => {
     searchParams.get(FilterParams.ToDifficulty) || INF_POINT.toString(),
     10
   );
+  const [mergeLikeContest, setMergeLikeContest] = useState(true);
   const mergedProblemMap =
     useMergedProblemMap().data ?? new Map<ProblemId, MergedProblem>();
   const points = Array.from(
@@ -138,6 +141,14 @@ export const ProblemList: React.FC<Props> = (props) => {
 
   const loginState = useLoginState().data;
   const isLoggedIn = UserState.isLoggedIn(loginState);
+  const filteredCategoryFilters = useMemo(() => {
+    return categoryFilters.filter(
+      (category) =>
+        category === "All" ||
+        !mergeLikeContest ||
+        !isLikeContestCategory(category)
+    );
+  }, [mergeLikeContest]);
   return (
     <>
       <Row className="my-2 border-bottom">
@@ -226,7 +237,7 @@ export const ProblemList: React.FC<Props> = (props) => {
                 : contestCategoryFilterState}
             </DropdownToggle>
             <DropdownMenu>
-              {categoryFilters.map((value) => (
+              {filteredCategoryFilters.map((value) => (
                 <DropdownItem
                   key={value}
                   tag={Link}
@@ -239,6 +250,11 @@ export const ProblemList: React.FC<Props> = (props) => {
               ))}
             </DropdownMenu>
           </UncontrolledDropdown>
+          <Button onClick={(): void => setMergeLikeContest(!mergeLikeContest)}>
+            {mergeLikeContest
+              ? 'Merging "-Like" Contest'
+              : 'Unmerging "-Like" Contest'}
+          </Button>
         </ButtonGroup>
         <ButtonGroup className="mr-4">
           <UncontrolledDropdown>
@@ -356,6 +372,7 @@ export const ProblemList: React.FC<Props> = (props) => {
           statusFilterState={statusFilterState}
           ratedFilterState={ratedFilterState}
           contestCategoryFilterState={contestCategoryFilterState}
+          mergeLikeContest={mergeLikeContest}
           fromDifficulty={fromDifficulty}
           toDifficulty={toDifficulty}
           filteredSubmissions={props.submissions}

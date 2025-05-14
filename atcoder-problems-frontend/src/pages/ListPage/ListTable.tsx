@@ -43,6 +43,7 @@ import {
   useRatingInfo,
 } from "../../api/APIClient";
 import { classifyContest } from "../../utils/ContestClassifier";
+import { getLikeContestCategory } from "../../utils/LikeContestUtils";
 
 export const INF_POINT = 1e18;
 
@@ -115,6 +116,7 @@ interface Props {
     | "Only Unrated"
     | "Only Unrated without Difficulty";
   contestCategoryFilterState: string;
+  mergeLikeContest: boolean;
   fromDifficulty: number;
   toDifficulty: number;
   filteredSubmissions: Submission[];
@@ -636,7 +638,12 @@ export const ListTable: React.FC<Props> = (props) => {
           if (!row.contest) return false;
           const contest = contestMap?.get(row.contest.id);
           const contestCategory = classifyContest(contest);
-          return props.contestCategoryFilterState === contestCategory;
+          return (
+            props.contestCategoryFilterState === contestCategory ||
+            (props.mergeLikeContest &&
+              getLikeContestCategory(props.contestCategoryFilterState) ===
+                contestCategory)
+          );
         })
         .filter((row) => {
           const difficulty = isProblemModelWithDifficultyModel(row.problemModel)
