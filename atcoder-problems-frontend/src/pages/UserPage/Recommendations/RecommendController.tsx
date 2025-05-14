@@ -9,7 +9,6 @@ import {
   UncontrolledDropdown,
 } from "reactstrap";
 import { formatExcludeOption } from "../../../utils/LastSolvedTime";
-
 const RECOMMEND_NUM_OPTIONS = [
   {
     text: "10",
@@ -47,12 +46,24 @@ const ExcludeOptions = [
 ] as const;
 export type ExcludeOption = typeof ExcludeOptions[number];
 
+const CategoryOptions = [
+  "All",
+  "ABC",
+  "ARC",
+  "AGC",
+  "Other Sponsored",
+] as const;
+export type CategoryOption = typeof CategoryOptions[number];
+
 interface Props {
   recommendOption: RecommendOption;
   onChangeRecommendOption: (option: RecommendOption) => void;
 
   excludeOption: ExcludeOption;
   onChangeExcludeOption: (option: ExcludeOption) => void;
+
+  categoryOption: CategoryOption;
+  onChangeCategoryOption: (option: CategoryOption) => void;
 
   showExperimental: boolean;
   onChangeExperimentalVisibility: (showExperimental: boolean) => void;
@@ -87,6 +98,25 @@ export const RecommendController = (props: Props) => (
                 onClick={(): void => props.onChangeExcludeOption(option)}
               >
                 {formatExcludeOption(option)}
+              </DropdownItem>
+            ))}
+          </DropdownMenu>
+        </UncontrolledDropdown>
+      </ButtonGroup>
+      <ButtonGroup className="mr-3">
+        <UncontrolledDropdown>
+          <DropdownToggle caret>
+            {props.categoryOption === "All"
+              ? "Contest Category"
+              : props.categoryOption}
+          </DropdownToggle>
+          <DropdownMenu>
+            {CategoryOptions.map((option) => (
+              <DropdownItem
+                key={option}
+                onClick={(): void => props.onChangeCategoryOption(option)}
+              >
+                {option}
               </DropdownItem>
             ))}
           </DropdownMenu>

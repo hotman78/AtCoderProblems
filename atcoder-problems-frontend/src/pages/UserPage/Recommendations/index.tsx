@@ -15,7 +15,7 @@ import { HelpBadgeTooltip } from "../../../components/HelpBadgeTooltip";
 import { NewTabLink } from "../../../components/NewTabLink";
 import { ProblemLink } from "../../../components/ProblemLink";
 import Problem from "../../../interfaces/Problem";
-import { ProblemId } from "../../../interfaces/Status";
+import { ContestId, ProblemId } from "../../../interfaces/Status";
 import {
   formatPredictedSolveProbability,
   formatPredictedSolveTime,
@@ -34,8 +34,13 @@ import {
   getLastSolvedTimeMap,
   getMaximumExcludeElapsedSecond,
 } from "../../../utils/LastSolvedTime";
+import { classifyContest } from "../../../utils/ContestClassifier";
 import { recommendProblems } from "./RecommendProblems";
-import { RecommendController, RecommendOption } from "./RecommendController";
+import {
+  CategoryOption,
+  RecommendController,
+  RecommendOption,
+} from "./RecommendController";
 
 interface Props {
   userId: string;
@@ -53,6 +58,10 @@ export const Recommendations = (props: Props) => {
   const [excludeOption, setExcludeOption] = useLocalStorage<ExcludeOption>(
     "recoomendExcludeOption",
     "Exclude"
+  );
+  const [categoryOption, setCategoryOption] = useLocalStorage<CategoryOption>(
+    "recommendCategoryOption",
+    "All"
   );
   const [recommendNum, setRecommendNum] = useState(10);
 
@@ -105,6 +114,17 @@ export const Recommendations = (props: Props) => {
         : Number.MAX_SAFE_INTEGER;
       return getMaximumExcludeElapsedSecond(excludeOption) < elapsedSecond;
     },
+    (contestId: ContestId) => {
+      if (categoryOption === "All") return true;
+      const contest = contestMap?.get(contestId);
+      if (!contest) {
+        return false;
+      }
+      return (
+        classifyContest(contest) === categoryOption ||
+        classifyContest(contest) === categoryOption + "-Like"
+      );
+    },
     (problemId: ProblemId) => problemModels?.get(problemId),
     recommendExperimental,
     userRatingInfo.internalRating,
@@ -120,6 +140,8 @@ export const Recommendations = (props: Props) => {
           onChangeRecommendOption={(option) => setRecommendOption(option)}
           excludeOption={excludeOption}
           onChangeExcludeOption={(option) => setExcludeOption(option)}
+          categoryOption={categoryOption}
+          onChangeCategoryOption={(option) => setCategoryOption(option)}
           showExperimental={recommendExperimental}
           onChangeExperimentalVisibility={(show) =>
             setRecommendExperimental(show)
